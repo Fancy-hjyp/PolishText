@@ -1,0 +1,214 @@
+/* 腾讯风格模板样式 - 优化版本 */
+.template-tengxun {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  line-height: 1.4;
+  color: var(--textColor, #333);
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 10px;
+  background: var(--backgroundColor, #fff);
+}
+
+.template-tengxun h1,
+.template-tengxun h2,
+.template-tengxun h3,
+.template-tengxun h4,
+.template-tengxun h5,
+.template-tengxun h6 {
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--primaryColor, #0052ff);
+}
+
+/* 标题尺寸 - 与其他模板保持一致的设计 */
+.template-tengxun h1 { 
+  font-size: 1.4em; 
+  text-align: center;
+  width: 100%;
+  display: block;
+  position: relative;
+}
+
+.template-tengxun h2 { 
+  font-size: 1.2em;
+  border-left: 4px solid var(--primaryColor, #0052ff);
+  padding-left: 10px;
+}
+
+.template-tengxun h3 { font-size: 1em; }
+
+/* 段落 */
+.template-tengxun p {
+  color: var(--textColor, #000000);
+  margin: 10px 0;
+  line-height: 1.8;
+}
+
+/* 链接 */
+.template-tengxun a {
+  color: var(--linkColor, #1890ff);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.template-tengxun a:hover {
+  color: var(--primaryColor, #0052ff);
+  border-bottom-color: var(--primaryColor, #0052ff);
+}
+
+/* 代码样式 */
+.template-tengxun code {
+  background: #f6f8fa;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  color: var(--textColor, #000000);
+}
+
+.template-tengxun pre {
+  background: #f6f8fa;
+  border-radius: 8px;
+  padding: 20px;
+  overflow-x: auto;
+  margin: 20px 0;
+  position: relative;
+  line-height: 1.6;
+}
+
+.template-tengxun pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: var(--textColor, #000000);
+}
+
+/* 引用 */
+.template-tengxun blockquote {
+  background: linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(24, 144, 255, 0.05) 100%);
+  border-left: 4px solid var(--primaryColor, #1890ff);
+  margin: 10px 0;
+  padding: 10px 20px;
+  border-radius: 0 8px 8px 0;
+  position: relative;
+  color: var(--primaryColor, #1890ff);
+}
+
+.template-tengxun blockquote::before {
+  content: '"';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  font-size: 1em;
+  color: var(--primaryColor, #1890ff);
+  opacity: 0.3;
+  font-family: serif;
+}
+
+/* 列表 */
+.template-tengxun ul,
+.template-tengxun ol {
+  color: var(--textColor, #000000);
+  padding-left: 20px;
+  margin: 15px 0;
+}
+
+.template-tengxun li {
+  margin: 8px 0;
+}
+
+/* 表格 */
+.template-tengxun table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.template-tengxun th {
+  background: linear-gradient(135deg, var(--primaryColor, #1890ff) 0%, var(--secondaryColor, #0052ff) 100%);
+  color: white;
+  font-weight: 600;
+  padding: 12px 16px;
+  text-align: left;
+  border: none;
+}
+
+.template-tengxun td {
+  color: var(--linkColor, #1890ff);
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borderColor, #91d5ff);
+  background: white;
+}
+
+.template-tengxun tr:hover td {
+  background: rgba(24, 144, 255, 0.05);
+}
+
+/* 分割线 */
+.template-tengxun hr {
+  border: none;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primaryColor, #1890ff), transparent);
+  margin: 30px 0;
+  position: relative;
+}
+
+.template-tengxun hr::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 10px;
+  height: 10px;
+  background: var(--primaryColor, #1890ff);
+  border-radius: 50%;
+}
+
+/* 文本强调 */
+.template-tengxun strong {
+  color: var(--secondaryColor, #0052ff);
+  font-weight: 600;
+}
+
+.template-tengxun em {
+  color: var(--primaryColor, #1890ff);
+  font-style: italic;
+}
+
+/* 删除线 */
+.template-tengxun del {
+  color: #8c8c8c;
+  text-decoration: line-through;
+}
+
+/* 图片 */
+.template-tengxun img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+  margin: 20px 0;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .template-tengxun h1 {
+    font-size: 2em;
+    margin: 20px 0 30px 0;
+  }
+  
+  .template-tengxun h2 {
+    font-size: 1.5em;
+  }
+  
+  .template-tengxun h3 {
+    font-size: 1.2em;
+  }
+}

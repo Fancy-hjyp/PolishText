@@ -4,7 +4,7 @@
     <header class="app-header">
       <div class="nav-container">
         <h1 class="app-title">
-          <router-link to="/" class="title-link">Template-VUE</router-link>
+          <router-link to="/" class="title-link">Markdown 转 HTML 工具</router-link>
         </h1>
         <nav class="main-nav">
           <ul class="nav-list">
