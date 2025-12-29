@@ -3,9 +3,9 @@
     <!-- 模板选择区域 -->
     <div class="template-selector">
       <div class="template-header">
-        <h2>样式模板</h2>
         <div class="control-group">
           <!-- 模板选择 -->
+          <div class="select-label">模板样式:</div>
           <el-select 
             v-model="selectedTemplate" 
             placeholder="选择模板样式"
@@ -22,6 +22,7 @@
           </el-select>
           
           <!-- 主题颜色选择 -->
+          <div class="select-label">主题颜色:</div>
           <el-select 
             v-model="selectedThemeColor" 
             placeholder="主题颜色"
@@ -47,6 +48,7 @@
           </el-select>
           
           <!-- 背景颜色选择 -->
+          <div class="select-label">背景颜色:</div>
           <el-select 
             v-model="selectedBackground" 
             placeholder="背景颜色"
@@ -114,12 +116,7 @@
         <!-- 预览选项卡 -->
         <el-tabs v-model="activeTab" type="border-card">
           <el-tab-pane label="HTML预览" name="preview">
-            <div class="preview-content" :class="`template-${selectedTemplate}`">
-              <div 
-                class="markdown-preview" 
-                v-html="renderedHtml"
-                ref="previewRef"
-              />
+            <div class="preview-content" :class="`template-${selectedTemplate}`" ref="previewContainerRef" v-html="renderedHtml">
             </div>
           </el-tab-pane>
           
@@ -127,14 +124,16 @@
             <div class="code-panel">
               <div class="code-header">
                 <h4>生成的HTML代码</h4>
-                <el-button 
-                  size="small" 
-                  type="primary"
-                  @click="copyHtmlCode"
-                  :icon="CopyDocument"
-                >
-                  复制代码
-                </el-button>
+                <div class="button-group">
+                  <el-button 
+                    size="small" 
+                    type="success"
+                    @click="copyWeChatHtmlCode"
+                    :icon="CopyDocument"
+                  >
+                    微信公众号版
+                  </el-button>
+                </div>
               </div>
               <div class="code-content">
                 <el-input
@@ -160,6 +159,7 @@ import { ElMessage } from 'element-plus'
 import { Document, Delete, CopyDocument } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
+import juice from 'juice'
 import '../styles/templates/index.css'
 
 // 初始化markdown解析器
@@ -179,10 +179,10 @@ const md = new MarkdownIt({
   }
 })
 
-// 响应式数据
+// 响应式数据 - 简化默认内容
 const markdownInput = ref(`# 欢迎使用 Markdown 转 HTML 工具
 
-这是一个功能强大的 Markdown 转 HTML 转换器，支持：
+这是一个功能强大的 Markdown 转换器，支持：
 
 ## 主要功能
 - ✨ 实时预览转换结果
@@ -211,15 +211,28 @@ function helloWorld() {
 
 const selectedTemplate = ref('tengxun')
 const activeTab = ref('preview')
-const previewRef = ref(null)
+const previewContainerRef = ref(null)
 
 // 模板配置
 const templates = [
   {
+    id: 'tengxun',
+    name: '腾讯风格',
+    class: 'template-tengxun',
+    styles: {
+      primaryColor: '#1890ff',
+      secondaryColor: '#40a9ff',
+      backgroundColor: '#ffffff',
+      textColor: '#333333',
+      linkColor: '#1890ff',
+      borderColor: '#d9d9d9'
+    }
+  },
+  {
     id: 'default',
     name: '默认模板',
     class: 'template-default',
-    cssVariables: {
+    styles: {
       primaryColor: '#409eff',
       secondaryColor: '#66b1ff',
       backgroundColor: '#ffffff',
@@ -232,26 +245,13 @@ const templates = [
     id: 'github',
     name: 'GitHub风格',
     class: 'template-github',
-    cssVariables: {
+    styles: {
       primaryColor: '#0366d6',
       secondaryColor: '#0256cc',
       backgroundColor: '#ffffff',
       textColor: '#24292e',
       linkColor: '#0366d6',
       borderColor: '#e1e4e8'
-    }
-  },
-  {
-    id: 'tengxun',
-    name: '腾讯风格',
-    class: 'template-tengxun',
-    cssVariables: {
-      primaryColor: '#1890ff',
-      secondaryColor: '#40a9ff',
-      backgroundColor: '#ffffff',
-      textColor: '#333333',
-      linkColor: '#1890ff',
-      borderColor: '#d9d9d9'
     }
   }
 ]
@@ -321,51 +321,24 @@ const handleBackgroundChange = (value) => {
 const loadSample = () => {
   markdownInput.value = `# 高级 Markdown 示例
 
-## 数学公式
-行内公式: $E = mc^2$
-
-块级公式:
-$$
-\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}
-$$
-
-## 任务列表
-- [x] 已完成的任务
-- [ ] 待完成的任务
-- [ ] 另一个任务
-
-## 嵌套列表
-1. 第一项
-   - 子项目 A
-   - 子项目 B
-2. 第二项
-   - 子项目 C
-   - 子项目 D
-
-## 代码示例（不同语言）
+## 代码示例
 \`\`\`python
 import numpy as np
-import pandas as pd
 
 def process_data(data):
     return pd.DataFrame(data)
 \`\`\`
 
-\`\`\`css
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-}
-\`\`\`
+## 任务列表
+- [x] 已完成的任务
+- [ ] 待完成的任务
 
-## 链接和图片
-[访问 Vue.js](https://vuejs.org)
+## 表格示例
+| 功能 | 状态 | 描述 |
+|------|------|------|
+| 实时预览 | ✅ | 支持 |
 
-![示例图片](https://via.placeholder.com/400x200/4F46E5/FFFFFF?text=示例图片)
-
----
-*感谢使用我们的工具！*`
+> 感谢使用我们的工具！`
   
   ElMessage.success('已加载示例内容')
 }
@@ -375,29 +348,132 @@ const clearInput = () => {
   ElMessage.info('已清空输入内容')
 }
 
-const copyHtmlCode = async () => {
-  try {
-    await navigator.clipboard.writeText(generatedHtml.value)
-    ElMessage.success('HTML代码已复制到剪贴板')
-  } catch (err) {
-    ElMessage.error('复制失败，请手动复制')
+// CSS样式内联化函数 - 使用juice库自动处理已加载的CSS
+const mergeCss = (html) => {
+  return juice(html, {
+    inlinePseudoElements: true,
+    preserveImportant: true,
+    resolveCSSVariables: true,  // 启用CSS变量解析，让juice自动处理变量
+  })
+};
+
+// 获取当前模板的完整CSS样式
+const getCurrentTemplateStyles = () => {
+  // 获取所有样式表
+  const styleSheets = Array.from(document.styleSheets);
+  let templateCss = '';
+  
+  // 查找包含模板样式的样式表
+  for (const sheet of styleSheets) {
+    try {
+      // 尝试访问样式表规则
+      const rules = sheet.cssRules || sheet.rules;
+      if (!rules) continue;
+      
+      for (const rule of rules) {
+        // 收集与当前模板相关的CSS规则
+        if (rule.selectorText && 
+            (rule.selectorText.includes(`.template-${selectedTemplate.value}`) ||
+             rule.selectorText.includes(':root'))) {
+          templateCss += rule.cssText + '\n';
+        }
+      }
+    } catch (e) {
+      // 跨域样式表无法访问，跳过
+      console.warn('无法访问样式表:', sheet.href, e);
+    }
   }
-}
+  
+  return templateCss;
+};
+
+// 生成微信公众号兼容的HTML代码
+const generateWeChatCompatibleHtml = async () => {
+  if (!markdownInput.value.trim()) {
+    return '<div style="padding: 20px; text-align: center; color: #666;">请输入 Markdown 文本...</div>';
+  }
+  
+  const previewContainer = previewContainerRef.value;
+  if (!previewContainer) return '';
+
+  // 步骤1：获取外部的 template-xxx 样式
+  let templateCss = '';
+  templateCss = await getCurrentTemplateStyles();
+  console.log('提取的模板CSS:', templateCss);
+  
+  // 获取变量列表
+  const variables = getCurrentTemplateVariables();
+
+  Object.entries(variables).forEach(([key, value]) => {
+    // 使用变量名进行替换
+    const regex = new RegExp(`var\\(\\s*--${key}\\s*(?:,\\s*[^)]+)?\\s*\\)`, 'g');
+    templateCss = templateCss.replace(regex, value);
+  });
+  console.log('替换变量后的CSS:', templateCss);
+
+  // 步骤2：构建包含实际样式的完整HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = previewContainer.innerHTML;
+  let fullHtml = `
+    <style>
+      ${templateCss}
+    </style>
+    <div class="template-${selectedTemplate.value}">
+      ${tempDiv.innerHTML}
+    </div>
+  `;
+
+  // 步骤3：使用Juice内联样式
+  const inlinedHtml = mergeCss(fullHtml, {
+    // Juice 配置：确保内联所有样式
+    preserveImportant: true,   // 保留 !important 样式
+    removeStyleTags: false,    // 保留style标签，让mergeCss函数处理
+    webResources: {
+      relativeTo: window.location.href // 处理相对路径（如果有）
+    }
+  });
+
+  return inlinedHtml;
+};
+
+// 复制微信公众号兼容代码
+const copyWeChatHtmlCode = async () => {
+  try {
+    const weChatHtml = await generateWeChatCompatibleHtml();
+    
+    // 创建剪贴板数据
+    const clipboardData = new ClipboardItem({
+      'text/html': new Blob([weChatHtml], { type: 'text/html' }),
+      'text/plain': new Blob([weChatHtml], { type: 'text/plain' })
+    });
+    
+    // 写入剪贴板
+    await navigator.clipboard.write([clipboardData]);
+    ElMessage.success('微信公众号兼容代码已复制到剪贴板');
+  } catch (err) {
+    console.error('使用Clipboard API复制失败:', err);
+    // 降级方案：直接复制文本
+    try {
+      const weChatHtml = await generateWeChatCompatibleHtml();
+      await navigator.clipboard.writeText(weChatHtml);
+      ElMessage.success('已使用备用方案复制到剪贴板');
+    } catch (fallbackErr) {
+      ElMessage.error('复制失败，请手动复制');
+    }
+  }
+};
 
 // 获取当前模板的CSS变量
 const getCurrentTemplateVariables = () => {
-  const currentTemplate = templates.find(t => t.id === selectedTemplate.value);
-  if (!currentTemplate || !currentTemplate.cssVariables) {
-    return {};
-  }
+  const currentTemplate = templates.find(t => t.id === selectedTemplate.value) || templates[0];
   
-  // 获取主题颜色对象
+  // 获取主题颜色和背景对象
   const themeColorObj = themeColors.find(color => color.name === selectedThemeColor.value) || themeColors[0];
   const backgroundObj = backgroundOptions.find(bg => bg.name === selectedBackground.value) || backgroundOptions[0];
   
-  // 合并默认模板变量和用户选择的主题
+  // 合并默认模板样式和用户选择的主题
   return {
-    ...currentTemplate.cssVariables,
+    ...currentTemplate.styles,
     primaryColor: themeColorObj.primary,
     secondaryColor: themeColorObj.secondary,
     backgroundColor: backgroundObj.value
@@ -406,7 +482,7 @@ const getCurrentTemplateVariables = () => {
 
 // 应用CSS变量到预览容器
 const applyCSSVariables = () => {
-  const previewContainer = document.querySelector('.markdown-preview');
+  const previewContainer = document.querySelector('.preview-content');
   if (!previewContainer) return;
   
   const variables = getCurrentTemplateVariables();
@@ -426,7 +502,7 @@ const applyCSSVariables = () => {
 // 监听主题变化
 watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
   nextTick(() => {
-    const previewContainer = document.querySelector('.markdown-preview');
+    const previewContainer = document.querySelector('.preview-content');
     if (!previewContainer) return;
     
     // 清除所有模板类
@@ -529,12 +605,12 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
   padding: 16px;
 }
 
-.code-content :deep(.el-textarea) {
-  height: 100%;
-}
+/* .code-content :deep(.el-textarea) {
+  height: calc(100vh - 270px);
+} */
 
 .code-content :deep(.el-textarea__inner) {
-  height: 100% !important;
+  height: calc(100vh - 270px) !important;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 14px;
   line-height: 1.6;
@@ -555,91 +631,8 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
-  height: calc(100vh - 200px);
+  height: calc(100vh - 270px);
   min-height: 0;
-}
-
-.markdown-preview {
-  max-width: none;
-}
-
-/* 预览内容样式 */
-.markdown-preview h1,
-.markdown-preview h2,
-.markdown-preview h3,
-.markdown-preview h4,
-.markdown-preview h5,
-.markdown-preview h6 {
-  margin-top: 24px;
-  margin-bottom: 16px;
-  font-weight: 600;
-  line-height: 1.25;
-}
-
-.markdown-preview h1 { font-size: 2em; }
-.markdown-preview h2 { font-size: 1.5em; }
-.markdown-preview h3 { font-size: 1.25em; }
-
-.markdown-preview p {
-  margin-bottom: 16px;
-  line-height: 1.6;
-}
-
-.markdown-preview code {
-  background: #f1f3f4;
-  padding: 2px 6px;
-  border-radius: 3px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.9em;
-}
-
-.markdown-preview pre {
-  background: #f6f8fa;
-  border: 1px solid #e1e4e8;
-  border-radius: 6px;
-  padding: 16px;
-  overflow: auto;
-  margin: 16px 0;
-}
-
-.markdown-preview pre code {
-  background: none;
-  padding: 0;
-}
-
-.markdown-preview blockquote {
-  border-left: 4px solid #dfe2e5;
-  padding-left: 16px;
-  margin: 16px 0;
-  color: #6a737d;
-}
-
-.markdown-preview table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 16px 0;
-}
-
-.markdown-preview table th,
-.markdown-preview table td {
-  border: 1px solid #dfe2e5;
-  padding: 8px 12px;
-  text-align: left;
-}
-
-.markdown-preview table th {
-  background: #f6f8fa;
-  font-weight: 600;
-}
-
-.markdown-preview ul,
-.markdown-preview ol {
-  padding-left: 20px;
-  margin-bottom: 16px;
-}
-
-.markdown-preview li {
-  margin-bottom: 4px;
 }
 
 /* 代码面板 */
@@ -667,7 +660,10 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
   color: #303133;
 }
 
-
+.button-group {
+  display: flex;
+  gap: 8px;
+}
 
 /* 占位符样式 */
 .placeholder {
@@ -679,25 +675,6 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
   font-style: italic;
   border: 2px dashed #e4e7ed;
   border-radius: 6px;
-}
-
-/* 自定义滚动条 */
-.markdown-preview::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.markdown-preview::-webkit-scrollbar-track {
-  background: #f1f1f1;
-}
-
-.markdown-preview::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.markdown-preview::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
 }
 
 /* 响应式设计 */

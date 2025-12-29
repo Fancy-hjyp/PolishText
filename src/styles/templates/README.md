@@ -10,9 +10,6 @@ templates/
 ├── index.css       # 入口文件（可选）
 ├── default.css     # 默认模板样式
 ├── github.css      # GitHub风格模板样式
-├── clean.css       # 简洁风格模板样式
-├── academic.css    # 学术风格模板样式
-├── blog.css        # 博客风格模板样式
 └── tengxun.css     # 腾讯风格模板样式
 ```
 
