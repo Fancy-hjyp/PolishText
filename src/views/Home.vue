@@ -50,26 +50,43 @@
           <!-- 背景颜色选择 -->
           <div class="select-label">背景颜色:</div>
           <el-select 
-            v-model="selectedBackground" 
+            v-model="backgroundColor" 
             placeholder="背景颜色"
             size="large"
+            style="width: 150px; margin-right: 12px;"
+            @change="handleBackgroundColorChange"
+          >
+            <el-option
+              v-for="color in backgroundColorOptions"
+              :key="color.value"
+              :label="color.name"
+              :value="color.value"
+            >
+              <div class="dropdown-color-option">
+                <div 
+                  class="color-preview" 
+                  :style="{ backgroundColor: color.value }"
+                ></div>
+                <span>{{ color.name }}</span>
+              </div>
+            </el-option>
+          </el-select>
+          
+          <!-- 背景样式选择 -->
+          <div class="select-label">背景样式:</div>
+          <el-select 
+            v-model="selectedBackground" 
+            placeholder="背景样式"
+            size="large"
             style="width: 150px;"
-            :label-in-value="true"
             @change="handleBackgroundChange"
           >
             <el-option
               v-for="bg in backgroundOptions"
-              :key="bg.name"
+              :key="bg.value"
               :label="bg.name"
-              :value="bg.name"
+              :value="bg.value"
             >
-              <div class="dropdown-background-option">
-                <div 
-                  class="background-preview" 
-                  :style="{ backgroundColor: bg.value }"
-                ></div>
-                <span>{{ bg.name }}</span>
-              </div>
             </el-option>
           </el-select>
         </div>
@@ -116,7 +133,7 @@
         <!-- 预览选项卡 -->
         <el-tabs v-model="activeTab" type="border-card">
           <el-tab-pane label="HTML预览" name="preview">
-            <div class="preview-content" :class="`template-${selectedTemplate}`" ref="previewContainerRef" v-html="renderedHtml">
+            <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
             </div>
           </el-tab-pane>
           
@@ -161,6 +178,7 @@ import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import juice from 'juice'
 import '../styles/templates/index.css'
+import '../styles/background/index.css'
 
 // 初始化markdown解析器
 const md = new MarkdownIt({
@@ -213,7 +231,7 @@ const selectedTemplate = ref('tengxun')
 const activeTab = ref('preview')
 const previewContainerRef = ref(null)
 
-// 模板配置
+// 主题配置
 const templates = [
   {
     id: 'tengxun',
@@ -268,17 +286,24 @@ const themeColors = [
 
 // 背景选项配置
 const backgroundOptions = [
+  { name: '无', value: '' },
+  { name: '网格', value: 'grid' },
+]
+
+// 背景颜色选项配置
+const backgroundColorOptions = [
   { name: '白色', value: '#ffffff' },
   { name: '浅灰', value: '#fafafa' },
   { name: '米色', value: '#fdf6e3' },
-  { name: '深色', value: '#1f1f1f' },
   { name: '淡蓝', value: '#f0f8ff' },
-  { name: '淡绿', value: '#f6ffed' }
+  { name: '淡绿', value: '#f6ffed' },
+  { name: '淡粉', value: '#fff5f5' }
 ]
 
 // 响应式数据 - 添加主题状态
 const selectedThemeColor = ref(themeColors[0].name)
-const selectedBackground = ref(backgroundOptions[0].name)
+const selectedBackground = ref()
+const backgroundColor = ref('#ffffff')  // 默认白色背景
 
 // 计算属性
 const renderedHtml = computed(() => {
@@ -311,10 +336,16 @@ const handleThemeColorChange = (value) => {
   }
 }
 
+const handleBackgroundColorChange = (value) => {
+  console.log('切换到背景颜色:', value)
+  backgroundColor.value = value
+}
+
 const handleBackgroundChange = (value) => {
-  const bgObj = backgroundOptions.find(bg => bg.name === value);
+  console.log('切换到背景:', value)
+  const bgObj = backgroundOptions.find(bg => bg.value === value);
   if (bgObj) {
-    selectedBackground.value = bgObj.name;
+    selectedBackground.value = bgObj.value;
   }
 }
 
@@ -357,8 +388,8 @@ const mergeCss = (html) => {
   })
 };
 
-// 获取当前模板的完整CSS样式
-const getCurrentTemplateStyles = () => {
+// 获取指定模板的完整CSS样式
+const getCurrentTemplateStyles = (className) => {
   // 获取所有样式表
   const styleSheets = Array.from(document.styleSheets);
   let templateCss = '';
@@ -373,7 +404,7 @@ const getCurrentTemplateStyles = () => {
       for (const rule of rules) {
         // 收集与当前模板相关的CSS规则
         if (rule.selectorText && 
-            (rule.selectorText.includes(`.template-${selectedTemplate.value}`) ||
+            (rule.selectorText.includes(className) ||
              rule.selectorText.includes(':root'))) {
           templateCss += rule.cssText + '\n';
         }
@@ -398,8 +429,7 @@ const generateWeChatCompatibleHtml = async () => {
 
   // 步骤1：获取外部的 template-xxx 样式
   let templateCss = '';
-  templateCss = await getCurrentTemplateStyles();
-  console.log('提取的模板CSS:', templateCss);
+  templateCss = await getCurrentTemplateStyles(`.template-${selectedTemplate.value}`);
   
   // 获取变量列表
   const variables = getCurrentTemplateVariables();
@@ -411,17 +441,24 @@ const generateWeChatCompatibleHtml = async () => {
   });
   console.log('替换变量后的CSS:', templateCss);
 
+  // 获取外部的 background-xxx 样式
+  let backgroundCss = '';
+  backgroundCss = await getCurrentTemplateStyles(`.background-${selectedBackground.value}`);
+  console.log('提取的背景CSS:', backgroundCss);
+
   // 步骤2：构建包含实际样式的完整HTML
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = previewContainer.innerHTML;
   let fullHtml = `
     <style>
       ${templateCss}
+      ${backgroundCss}
     </style>
-    <div class="template-${selectedTemplate.value}">
+    <div class="template-${selectedTemplate.value} background-${selectedBackground.value}">
       ${tempDiv.innerHTML}
     </div>
   `;
+  console.log('完整HTML:', fullHtml);
 
   // 步骤3：使用Juice内联样式
   const inlinedHtml = mergeCss(fullHtml, {
@@ -432,6 +469,7 @@ const generateWeChatCompatibleHtml = async () => {
       relativeTo: window.location.href // 处理相对路径（如果有）
     }
   });
+  console.log('内联后的HTML:', inlinedHtml);
 
   return inlinedHtml;
 };
@@ -469,14 +507,13 @@ const getCurrentTemplateVariables = () => {
   
   // 获取主题颜色和背景对象
   const themeColorObj = themeColors.find(color => color.name === selectedThemeColor.value) || themeColors[0];
-  const backgroundObj = backgroundOptions.find(bg => bg.name === selectedBackground.value) || backgroundOptions[0];
   
   // 合并默认模板样式和用户选择的主题
   return {
     ...currentTemplate.styles,
     primaryColor: themeColorObj.primary,
     secondaryColor: themeColorObj.secondary,
-    backgroundColor: backgroundObj.value
+    backgroundColor: backgroundColor.value  // 添加背景颜色变量
   };
 };
 
@@ -500,15 +537,18 @@ const applyCSSVariables = () => {
 };
 
 // 监听主题变化
-watch([selectedTemplate, selectedThemeColor, selectedBackground], () => {
+watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor], () => {
   nextTick(() => {
     const previewContainer = document.querySelector('.preview-content');
     if (!previewContainer) return;
     
     // 清除所有模板类
     previewContainer.className = previewContainer.className.replace(/template-\w+/g, '');
-    // 添加新模板类
     previewContainer.classList.add(`template-${selectedTemplate.value}`);
+
+    // 添加背景样式类
+    previewContainer.className = previewContainer.className.replace(/background-\w+/g, '');
+    previewContainer.classList.add(`background-${selectedBackground.value}`);
     
     // 应用CSS变量
     applyCSSVariables();
