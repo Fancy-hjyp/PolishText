@@ -1,8 +1,8 @@
-/* 腾讯风格模板样式 */
-.template-tengxun {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+/* 技术风格模板样式 */
+.template-tech {
+  font-family: var(--fontFamily, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif);
   line-height: 1.6;
-  font-size: 16px;
+  font-size: var(--fontSize, 14px);
   color: var(--textColor, #333);
   max-width: 900px;
   margin: 0 auto;
@@ -10,12 +10,12 @@
   background: var(--backgroundColor, #fff);
 }
 
-.template-tengxun h1,
-.template-tengxun h2,
-.template-tengxun h3,
-.template-tengxun h4,
-.template-tengxun h5,
-.template-tengxun h6 {
+.template-tech h1,
+.template-tech h2,
+.template-tech h3,
+.template-tech h4,
+.template-tech h5,
+.template-tech h6 {
   margin-top: 24px;
   margin-bottom: 16px;
   font-weight: 600;
@@ -24,7 +24,7 @@
 }
 
 /* 标题尺寸 - 与其他模板保持一致的设计 */
-.template-tengxun h1 { 
+.template-tech h1 { 
   font-size: 1.4em;
   text-align: center;
   width: 100%;
@@ -32,36 +32,36 @@
   position: relative;
 }
 
-.template-tengxun h2 { 
+.template-tech h2 { 
   font-size: 1.2em;
   border-left: 4px solid var(--primaryColor, #0052ff);
   padding-left: 10px;
 }
 
-.template-tengxun h3 { font-size: 1em; }
+.template-tech h3 { font-size: 1em; }
 
 /* 段落 */
-.template-tengxun p {
+.template-tech p {
   color: var(--textColor, #000000);
   margin: 15px 0;
   line-height: 1.8;
 }
 
 /* 链接 */
-.template-tengxun a {
+.template-tech a {
   color: var(--linkColor, #1890ff);
   text-decoration: none;
   border-bottom: 1px solid transparent;
   transition: all 0.3s ease;
 }
 
-.template-tengxun a:hover {
+.template-tech a:hover {
   color: var(--primaryColor, #0052ff);
   border-bottom-color: var(--primaryColor, #0052ff);
 }
 
 /* 代码样式 */
-.template-tengxun code {
+.template-tech code {
   background: #f6f8fa;
   padding: 2px 6px;
   border-radius: 4px;
@@ -70,7 +70,7 @@
   color: var(--textColor, #000000);
 }
 
-.template-tengxun pre {
+.template-tech pre {
   background: #f6f8fa;
   border-radius: 8px;
   padding: 20px;
@@ -80,7 +80,7 @@
   line-height: 1.6;
 }
 
-.template-tengxun pre code {
+.template-tech pre code {
   background: transparent;
   border: none;
   padding: 0;
@@ -88,7 +88,7 @@
 }
 
 /* 引用 */
-.template-tengxun blockquote {
+.template-tech blockquote {
   background: linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(24, 144, 255, 0.05) 100%);
   border-left: 4px solid var(--primaryColor, #1890ff);
   margin: 10px 0;
@@ -98,7 +98,7 @@
   color: var(--primaryColor, #1890ff);
 }
 
-.template-tengxun blockquote::before {
+.template-tech blockquote::before {
   position: absolute;
   top: -10px;
   left: 10px;
@@ -109,19 +109,19 @@
 }
 
 /* 列表 */
-.template-tengxun ul,
-.template-tengxun ol {
+.template-tech ul,
+.template-tech ol {
   color: var(--textColor, #000000);
   padding-left: 20px;
   margin: 15px 0;
 }
 
-.template-tengxun li {
+.template-tech li {
   margin: 8px 0;
 }
 
 /* 表格 */
-.template-tengxun table {
+.template-tech table {
   width: 100%;
   border-collapse: collapse;
   margin: 20px 0;
@@ -129,7 +129,7 @@
   overflow: hidden;
 }
 
-.template-tengxun th {
+.template-tech th {
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -137,18 +137,18 @@
   background-color: #f2f2f2;
 }
 
-.template-tengxun td {
+.template-tech td {
   padding: 12px 16px;
   border: 1px solid #c6c6c6;
   background: white;
 }
 
-.template-tengxun tr:hover td {
+.template-tech tr:hover td {
   background: rgba(24, 144, 255, 0.05);
 }
 
 /* 分割线 */
-.template-tengxun hr {
+.template-tech hr {
   border: none;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--primaryColor, #1890ff), transparent);
@@ -156,7 +156,7 @@
   position: relative;
 }
 
-.template-tengxun hr::before {
+.template-tech hr::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -169,24 +169,24 @@
 }
 
 /* 文本强调 */
-.template-tengxun strong {
+.template-tech strong {
   color: var(--secondaryColor, #0052ff);
-  font-weight: 600;
+  font-weight: 500;
 }
 
-.template-tengxun em {
+.template-tech em {
   color: var(--primaryColor, #1890ff);
   font-style: italic;
 }
 
 /* 删除线 */
-.template-tengxun del {
+.template-tech del {
   color: #8c8c8c;
   text-decoration: line-through;
 }
 
 /* 图片 */
-.template-tengxun img {
+.template-tech img {
   max-width: 100%;
   height: auto;
   border-radius: 8px;
@@ -196,16 +196,16 @@
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .template-tengxun h1 {
+  .template-tech h1 {
     font-size: 2em;
     margin: 20px 0 30px 0;
   }
   
-  .template-tengxun h2 {
+  .template-tech h2 {
     font-size: 1.5em;
   }
   
-  .template-tengxun h3 {
+  .template-tech h3 {
     font-size: 1.2em;
   }
 }
