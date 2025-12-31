@@ -9,8 +9,8 @@
           <el-select 
             v-model="selectedTemplate" 
             placeholder="选择模板样式"
-            size="large"
-            style="width: 200px; margin-right: 12px;"
+            size="small"
+            style="width: 100px; margin-right: 12px;"
             @change="handleTemplateChange"
           >
             <el-option
@@ -26,8 +26,8 @@
           <el-select 
             v-model="selectedThemeColor" 
             placeholder="主题颜色"
-            size="large"
-            style="width: 150px; margin-right: 12px;"
+            size="small"
+            style="width: 100px; margin-right: 12px;"
             :label-in-value="true"
             @change="handleThemeColorChange"
           >
@@ -52,8 +52,8 @@
           <el-select 
             v-model="backgroundColor" 
             placeholder="背景颜色"
-            size="large"
-            style="width: 150px; margin-right: 12px;"
+            size="small"
+            style="width: 100px; margin-right: 12px;"
             @change="handleBackgroundColorChange"
           >
             <el-option
@@ -77,8 +77,8 @@
           <el-select 
             v-model="selectedBackground" 
             placeholder="背景样式"
-            size="large"
-            style="width: 150px; margin-right: 12px;"
+            size="small"
+            style="width: 100px; margin-right: 12px;"
             @change="handleBackgroundChange"
           >
             <el-option
@@ -95,8 +95,8 @@
           <el-select 
             v-model="fontSize" 
             placeholder="字体大小"
-            size="large"
-            style="width: 120px; margin-right: 12px;"
+            size="small"
+            style="width: 100px; margin-right: 12px;"
             @change="handleFontSizeChange"
           >
             <el-option
@@ -112,8 +112,8 @@
           <el-select 
             v-model="fontFamily" 
             placeholder="字体类型"
-            size="large"
-            style="width: 150px;"
+            size="small"
+            style="width: 100px;"
             @change="handleFontFamilyChange"
           >
             <el-option
@@ -155,9 +155,9 @@
             v-model="markdownInput"
             type="textarea"
             placeholder="在这里输入您的Markdown文本..."
-            :rows="20"
             resize="none"
             @input="handleInputChange"
+            style="height: 100%;"
           />
         </div>
       </div>
@@ -165,8 +165,8 @@
       <!-- 右侧：预览和代码区域 -->
       <div class="preview-panel">
         <!-- 预览选项卡 -->
-        <el-tabs v-model="activeTab" type="border-card">
-          <el-tab-pane label="HTML预览" name="preview">
+        <el-tabs v-model="activeTab" type="border-card" style="height: 100%;">
+          <el-tab-pane label="HTML预览" name="preview" style="height: 100%;">
             <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
             </div>
           </el-tab-pane>
@@ -207,12 +207,13 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Document, Delete, CopyDocument } from '@element-plus/icons-vue'
+import { Document, Delete, CopyDocument, Download } from '@element-plus/icons-vue'
 import MarkdownIt from 'markdown-it'
 import hljs from 'highlight.js'
 import juice from 'juice'
 import '../styles/templates/index.css'
 import '../styles/background/index.css'
+import { toPng, toJpeg, toBlob } from 'html-to-image'
 
 // 初始化markdown解析器
 const md = new MarkdownIt({
@@ -323,7 +324,7 @@ const fontSizeOptions = [
 const fontFamilyOptions = [
   { label: '系统默认', value: '-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif' },
   { label: '宋体', value: '"Songti SC", "SimSun", "STSong", serif' },
-  { label: '黑体', value: '"Heiti SC", "SimHei", "STHeiti", sans-serif' },
+  { label: '黑体', value: '"Heiti SC", "SimHei", "STHei", sans-serif' },
   { label: '微软雅黑', value: '"Microsoft YaHei", "PingFang SC", sans-serif' },
   { label: '苹方', value: '"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif' },
   { label: '楷体', value: '"Kaiti SC", "STKaiti", "KaiTi", serif' },
@@ -462,7 +463,7 @@ const getCurrentTemplateStyles = (className) => {
         }
       }
     } catch (e) {
-      // 跨域样式表无法访问，跳过
+      // 跨域样式结构无法访问，跳过
       console.warn('无法访问样式表:', sheet.href, e);
     }
   }
@@ -641,7 +642,7 @@ const copyWeChatHtmlCode = async () => {
     
     // 写入剪贴板
     await navigator.clipboard.write([clipboardData]);
-    ElMessage.success('微信公众号兼容代码已复制到剪贴板');
+    ElMessage.success('微信公众号兼容代码已复制到剪贴板，可直接粘贴到公众号文章编辑处');
   } catch (err) {
     console.error('使用Clipboard API复制失败:', err);
     // 降级方案：直接复制文本
@@ -657,30 +658,40 @@ const copyWeChatHtmlCode = async () => {
 
 // 应用CSS变量到预览容器
 const applyCSSVariables = () => {
-  const previewContainer = document.querySelector('.preview-content');
-  if (!previewContainer) return;
+  // 更新所有匹配的预览容器
+  const previewContainers = document.querySelectorAll('.preview-content');
+  if (previewContainers.length === 0) return;
   
   const variables = getCurrentTemplateVariables();
   
-  // 应用新的CSS变量
-  Object.entries(variables).forEach(([key, value]) => {
-    previewContainer.style.setProperty(`--${key}`, value);
+  previewContainers.forEach(previewContainer => {
+    // 应用新的CSS变量
+    Object.entries(variables).forEach(([key, value]) => {
+      previewContainer.style.setProperty(`--${key}`, value);
+    });
+    
+    // 直接设置背景颜色和字体大小样式，确保生效
+    previewContainer.style.backgroundColor = backgroundColor.value;
+    previewContainer.style.fontSize = fontSize.value;
+    previewContainer.style.fontFamily = fontFamily.value;
   });
 };
 
 // 监听主题变化
 watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor, fontSize, fontFamily], async () => {
   nextTick(() => {
-    const previewContainer = document.querySelector('.preview-content');
-    if (!previewContainer) return;
+    const previewContainers = document.querySelectorAll('.preview-content');
+    if (previewContainers.length === 0) return;
     
-    // 清除所有模板类
-    previewContainer.className = previewContainer.className.replace(/template-\w+/g, '');
-    previewContainer.classList.add(`template-${selectedTemplate.value}`);
+    previewContainers.forEach(previewContainer => {
+      // 清除所有模板类
+      previewContainer.className = previewContainer.className.replace(/template-\w+/g, '');
+      previewContainer.classList.add(`template-${selectedTemplate.value}`);
 
-    // 添加背景样式类
-    previewContainer.className = previewContainer.className.replace(/background-\w+/g, '');
-    previewContainer.classList.add(`background-${selectedBackground.value}`);
+      // 添加背景样式类
+      previewContainer.className = previewContainer.className.replace(/background-\w+/g, '');
+      previewContainer.classList.add(`background-${selectedBackground.value}`);
+    });
     
     // 应用CSS变量
     applyCSSVariables();
@@ -690,7 +701,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 
 <style scoped>
 .markdown-tool-container {
-  height: calc(100vh - 120px);
+  height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
   background: #f5f7fa;
@@ -699,64 +710,80 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 /* 模板选择区域 */
 .template-selector {
   background: white;
-  padding: 16px 24px;
-  border-bottom: 1px solid #e4e7ed;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+  border-radius: 8px;
+  margin: 8px 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .template-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 16px;
   flex-wrap: wrap;
+  gap: 4px;
 }
 
-.template-header h2 {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
+.control-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
 }
 
 .select-label {
-  font-size: 14px;
-  color: #606266;
-  margin-right: 8px;
+  font-weight: 400;
+  color: #3f83f8;
   white-space: nowrap;
+  font-size: 13px;
 }
 
-/* 主要工作区域 */
+.dropdown-color-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.color-preview {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #dcdfe6;
+}
+
+/* 主工作区域 */
 .work-area {
+  display: flex;
   flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0;
+  gap: 16px;
+  padding: 0 16px 16px;
   overflow: hidden;
-}
+} 
 
-/* 左侧输入面板 */
 .input-panel {
-  background: white;
-  border-right: 1px solid #e4e7ed;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: rgb(255, 255, 255);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  height : 100%;
 }
 
 .panel-header {
-  padding: 16px 20px;
-  border-bottom: 1px solid #e4e7ed;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  background: #fafbfc;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
 }
 
 .panel-header h3 {
   margin: 0;
+  color: #303133;
   font-size: 16px;
   font-weight: 600;
-  color: #303133;
 }
 
 .panel-actions {
@@ -765,12 +792,8 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 .input-content {
-  flex: 1;
-  padding: 16px;
-}
-
-.input-content :deep(.el-textarea) {
   height: 100%;
+  padding: 16px;
 }
 
 .input-content :deep(.el-textarea__inner) {
@@ -785,59 +808,35 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   padding: 16px;
 }
 
-/* .code-content :deep(.el-textarea) {
-  height: calc(100vh - 270px);
-} */
-
-.code-content :deep(.el-textarea__inner) {
-  height: calc(100vh - 270px) !important;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 14px;
-  line-height: 1.6;
-  background: #f8f9fa;
-  color: #333;
-}
-
-/* 右侧预览面板 */
 .preview-panel {
-  background: white;
+  width: 60%;
+  min-width: 500px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   height: 100%;
 }
 
-.preview-content {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
-  height: calc(100vh - 270px);
-  min-height: 0;
-}
-
-/* 代码面板 */
 .code-panel {
-  height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .code-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid #e4e7ed;
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  background: #fafbfc;
-  flex-shrink: 0;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
 }
 
 .code-header h4 {
   margin: 0;
+  color: #303133;
   font-size: 14px;
   font-weight: 600;
-  color: #303133;
 }
 
 .button-group {
@@ -845,160 +844,37 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   gap: 8px;
 }
 
-/* 占位符样式 */
-.placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  color: #909399;
-  font-style: italic;
-  border: 2px dashed #e4e7ed;
-  border-radius: 6px;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .work-area {
-    grid-template-columns: 1fr;
-  }
-  
-  .input-panel {
-    border-right: none;
-    border-bottom: 1px solid #e4e7ed;
-  }
-  
-  .template-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  
-  .control-group {
-    flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-  }
-  
-  .control-group .el-select {
-    width: 100% !important;
-    margin-right: 0 !important;
-    margin-bottom: 8px;
-  }
-  
-  .theme-options {
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .color-picker-group,
-  .background-picker-group {
-    justify-content: flex-start;
-  }
-}
-
-/* 控制组样式 */
-.control-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* 下拉框颜色选项样式 */
-.dropdown-color-option,
-.dropdown-background-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dropdown-color-option .color-preview,
-.dropdown-background-option .background-preview {
-  width: 20px;
-  height: 20px;
-  border-radius: 3px;
-  border: 1px solid #dcdfe6;
-  flex-shrink: 0;
-}
-
-/* 主题选项样式 */
-.theme-options {
-  margin-top: 16px;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e4e7ed;
-  display: flex;
-  gap: 20px;
-}
-
-.theme-group {
+.code-content {
   flex: 1;
+  padding: 16px;
 }
 
-.theme-group label {
-  display: block;
-  font-weight: 600;
-  color: #303133;
-  margin-bottom: 8px;
+.preview-content {
+  padding: 24px;
+  height: 100%;
+  overflow-y: auto;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
+  line-height: 1.75;
+  background-color: #ffffff;
+  transition: all 0.3s ease;
 }
 
-.color-picker-group,
-.background-picker-group {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.color-option,
-.background-option {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 8px;
-  border: 2px solid transparent;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  background: white;
-  min-width: 60px;
-}
-
-.color-option:hover,
-.background-option:hover {
-  border-color: #409eff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.color-option.active,
-.background-option.active {
-  border-color: #409eff;
-  background: #f0f9ff;
-}
-
-.color-preview,
-.background-preview {
-  width: 32px;
-  height: 32px;
-  border-radius: 4px;
-  border: 1px solid #dcdfe6;
-  margin-bottom: 4px;
-}
-
-.color-name,
-.background-name {
-  font-size: 11px;
-  color: #606266;
+.placeholder {
+  color: #909399;
   text-align: center;
-  line-height: 1.2;
+  padding: 40px 0;
 }
 
-.color-option.active .color-name,
-.background-option.active .background-name {
-  color: #409eff;
-  font-weight: 500;
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .work-area {
+    flex-direction: column;
+  }
+  
+  .preview-panel {
+    width: 100%;
+    min-width: auto;
+  }
 }
 </style>
