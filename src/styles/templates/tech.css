@@ -89,10 +89,10 @@
 
 /* 引用 */
 .template-tech blockquote {
-  background: linear-gradient(135deg, rgba(24, 144, 255, 0.1) 0%, rgba(24, 144, 255, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(191, 221, 246, 0.1) 0%, rgba(165, 205, 242, 0.05) 100%);
   border-left: 4px solid var(--primaryColor, #1890ff);
   margin: 10px 0;
-  padding: 10px 20px;
+  padding: 1px 20px;
   border-radius: 0 8px 8px 0;
   position: relative;
   color: var(--primaryColor, #1890ff);

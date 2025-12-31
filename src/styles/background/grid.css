@@ -6,4 +6,6 @@
   background-size: 40px 40px; /* 格子大小80px（包含线条+间距） */
   background-color: #f9fafb;
   background-position: 0 0;
+
+  padding: 24px;
 }

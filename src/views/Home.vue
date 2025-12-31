@@ -166,12 +166,12 @@
       <div class="preview-panel">
         <!-- 预览选项卡 -->
         <el-tabs v-model="activeTab" type="border-card" style="height: 100%;">
-          <el-tab-pane label="HTML预览" name="preview" style="height: 100%;">
+          <el-tab-pane label="预览" name="preview" style="height: 100%;">
             <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
             </div>
           </el-tab-pane>
           
-          <el-tab-pane label="HTML代码" name="code">
+          <el-tab-pane label="微信公众号" name="code">
             <div class="code-panel">
               <div class="code-header">
                 <h4>生成的HTML代码</h4>
@@ -182,7 +182,7 @@
                     @click="copyWeChatHtmlCode"
                     :icon="CopyDocument"
                   >
-                    微信公众号版
+                    复制微信公众号内容
                   </el-button>
                 </div>
               </div>
@@ -195,6 +195,60 @@
                   resize="none"
                   readonly
                 />
+              </div>
+            </div>
+          </el-tab-pane>
+          
+          <!-- 新增图片分割tab -->
+          <el-tab-pane label="小红书图片" name="image" style="height: 100%;">
+            <div class="image-panel">
+              <div class="image-header">
+                <h4>图片分割预览</h4>
+                <div class="button-group">
+                  <!-- 卡片尺寸选择 -->
+                  <div class="card-size-control">
+                    <span class="select-label" style="margin-right: 8px;">卡片尺寸:</span>
+                    <el-select 
+                      v-model="cardSize" 
+                      placeholder="卡片尺寸"
+                      size="small"
+                      style="width: 140px; margin-right: 12px;"
+                      @change="handleCardSizeChange"
+                    >
+                      <el-option
+                        v-for="size in cardSizeOptions"
+                        :key="size.value"
+                        :label="size.name"
+                        :value="size.value"
+                      />
+                    </el-select>
+                  </div>
+                  
+                  <el-button 
+                    size="small" 
+                    type="primary"
+                    @click="downloadAllImages"
+                    :icon="Download"
+                  >
+                    下载全部图片
+                  </el-button>
+                </div>
+              </div>
+              
+              <div class="image-content">
+                <div 
+                  v-for="(imageDiv, index) in imageDivs" 
+                  :key="index"
+                  class="image-section"
+                  :style="{ width: cardWidth + 'px', height: cardHeight + 'px' }"
+                  :ref="el => { if (el) imageDivRefs[index] = el }"
+                >
+                  <div 
+                    :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }"
+                    :style="{ width: cardWidth + 'px', height: cardHeight + 'px' }"
+                    v-html="imageDiv"
+                  ></div>
+                </div>
               </div>
             </div>
           </el-tab-pane>
@@ -213,7 +267,8 @@ import hljs from 'highlight.js'
 import juice from 'juice'
 import '../styles/templates/index.css'
 import '../styles/background/index.css'
-import { toPng, toJpeg, toBlob } from 'html-to-image'
+import { toPng, toJpeg, toBlob } from 'html-to-image/lib/index.js'
+import JSZip from 'jszip'
 
 // 初始化markdown解析器
 const md = new MarkdownIt({
@@ -295,7 +350,7 @@ const themeColors = [
 
 // 背景选项配置
 const backgroundOptions = [
-  { name: '无', value: '' },
+  { name: '默认', value: 'default' },
   { name: '网格', value: 'grid' },
 ]
 
@@ -332,10 +387,34 @@ const fontFamilyOptions = [
 
 // 响应式数据 - 添加主题状态
 const selectedThemeColor = ref(themeColors[0].name)
-const selectedBackground = ref()
+const selectedBackground = ref('default')
 const backgroundColor = ref('#ffffff')  // 默认白色背景
 const fontSize = ref('12px')  // 默认字体大小
 const fontFamily = ref('-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif')  // 默认字体类型
+
+// 图片分割相关状态
+const imageDivs = ref([])
+const imageDivRefs = ref([])
+
+// 卡片尺寸相关状态
+const cardSize = ref('3_4') // 默认3:4比例（适合小红书帖子）
+const cardSizeOptions = [
+  { name: '3:4 (小红书帖子)', value: '3_4', width: 400, height: 586 },
+  { name: '3:5 (小红书封面)', value: '3_5', width: 400, height: 733 },
+  { name: '9:16 (手机海报)', value: '9_16', width: 400, height: 782 },
+  { name: '4:3 (横屏)', value: '4_3', width: 533, height: 400 },
+]
+
+// 计算卡片宽度和高度
+const cardWidth = computed(() => {
+  const sizeOption = cardSizeOptions.find(option => option.value === cardSize.value)
+  return sizeOption ? sizeOption.width : 600
+})
+
+const cardHeight = computed(() => {
+  const sizeOption = cardSizeOptions.find(option => option.value === cardSize.value)
+  return sizeOption ? sizeOption.height : 800
+})
 
 // 计算属性
 const renderedHtml = computed(() => {
@@ -355,6 +434,9 @@ const generatedHtml = computed(() => {
 // 方法
 const handleInputChange = () => {
   // 实时转换处理
+  if (activeTab.value === 'image') {
+    splitContentForImages()
+  }
 }
 
 const handleTemplateChange = (templateId) => {
@@ -394,6 +476,17 @@ const handleFontFamilyChange = (value) => {
   console.log('切换到字体类型:', value)
 }
 
+// 处理卡片尺寸变化
+const handleCardSizeChange = (value) => {
+  cardSize.value = value
+  console.log('切换到卡片尺寸:', value)
+  
+  // 当卡片尺寸改变时，重新拆分内容
+  if (activeTab.value === 'image') {
+    splitContentForImages()
+  }
+}
+
 const loadSample = () => {
   markdownInput.value = `# 高级 Markdown 示例
 
@@ -422,6 +515,334 @@ def process_data(data):
 const clearInput = () => {
   markdownInput.value = ''
   ElMessage.info('已清空输入内容')
+}
+
+// 将内容拆分为适合图片的片段
+const splitContentForImages = async () => {
+  if (!markdownInput.value.trim()) {
+    imageDivs.value = []
+    return
+  }
+
+  // 渲染完整的HTML内容
+  const fullHtml = md.render(markdownInput.value)
+  
+  // 创建临时容器来处理内容
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = fullHtml
+  tempDiv.style.position = 'absolute'
+  tempDiv.style.left = '-9999px'
+  tempDiv.style.width = `${cardWidth.value}px` // 使用动态卡片宽度
+  tempDiv.style.overflow = 'hidden'
+  document.body.appendChild(tempDiv)
+  
+  // 等待DOM渲染完成
+  await nextTick()
+  
+  // 创建一个测试容器，用于测量高度
+  const testContainer = document.createElement('div')
+  testContainer.style.width = `${cardWidth.value}px`
+  testContainer.style.height = `${cardHeight.value}px`
+  // testContainer.style.padding = '24px' // 与预览区域的padding一致
+  testContainer.style.boxSizing = 'border-box'
+  testContainer.style.fontFamily = fontFamily.value  // 添加字体族设置
+  testContainer.style.fontSize = fontSize.value  // 添加字体大小设置
+  testContainer.style.lineHeight = '1.75'
+  testContainer.className = `template-${selectedTemplate.value} background-${selectedBackground.value}`
+  console.log('测试容器类名:', testContainer.className)
+  document.body.appendChild(testContainer)
+  
+  // 获取应用了CSS变量的样式
+  const variables = getCurrentTemplateVariables()
+
+  // 应用新的CSS变量
+  Object.entries(variables).forEach(([key, value]) => {
+    testContainer.style.setProperty(`--${key}`, value);
+    console.log(`设置CSS变量 --${key}: ${value}`)
+  });
+  
+  // 直接设置背景颜色和字体大小样式，确保生效
+  testContainer.style.backgroundColor = backgroundColor.value;
+  // testContainer.style.fontSize = fontSize.value;  // 这行已经设置了，上面
+  // testContainer.style.fontFamily = fontFamily.value;  // 这行已经设置了，上面
+  
+  // 拆分内容的逻辑
+  const parts = []
+  const children = Array.from(tempDiv.children)
+  
+  // 如果没有子元素，直接处理完整HTML
+  if (children.length === 0) {
+    testContainer.innerHTML = fullHtml
+    if (testContainer.scrollHeight <= cardHeight.value - 10) {
+      parts.push(createStyledContent(fullHtml, testContainer))  // 使用测试容器的样式创建内容
+    } else {
+      // 如果完整内容超出高度，尝试拆分文本
+      const textContent = tempDiv.textContent || tempDiv.innerText || fullHtml
+      const textParts = splitTextIntoParts(textContent, fullHtml, testContainer)
+      // 对所有文本部分应用测试容器的样式
+      parts.push(...textParts.map(part => createStyledContent(part, testContainer)))
+    }
+  } else {
+    // 有多个子元素，逐个处理
+    let currentPartContent = ''
+    
+    for (const child of children) {
+      // 先添加当前子元素到当前部分
+      const testContent = currentPartContent ? currentPartContent + child.outerHTML : child.outerHTML
+      testContainer.innerHTML = testContent
+      
+      if (testContainer.scrollHeight > cardHeight.value) {
+        // 如果超出高度，先保存当前部分（如果有的话）
+        if (currentPartContent) {
+          parts.push(createStyledContent(currentPartContent, testContainer))  // 使用测试容器的样式
+        }
+        
+        // 测试单个元素是否超出高度
+        const elementContent = child.outerHTML
+        testContainer.innerHTML = elementContent
+        
+        if (testContainer.scrollHeight > cardHeight.value) {
+          // 拆分这个单独的元素
+          const elementParts = splitElementContent(child, testContainer)
+          // 对所有元素部分应用测试容器的样式
+          parts.push(...elementParts.map(part => createStyledContent(part, testContainer)))
+          currentPartContent = ''
+        } else {
+          // 单个元素未超出高度，作为新部分的开始
+          currentPartContent = elementContent
+        }
+      } else {
+        // 没有超出高度，更新当前部分
+        currentPartContent = testContent
+      }
+    }
+    
+    // 添加最后剩余的内容（如果有的话）
+    if (currentPartContent) {
+      parts.push(createStyledContent(currentPartContent, testContainer))  // 使用测试容器的样式
+    }
+  }
+  
+  // 清理临时元素
+  document.body.removeChild(tempDiv)
+  document.body.removeChild(testContainer)
+  
+  imageDivs.value = parts
+}
+
+// 创建带样式的HTML内容
+const createStyledContent = (htmlContent, referenceContainer) => {
+  // 创建一个临时div来处理HTML内容
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlContent;
+  
+  // 将参考容器的CSS变量应用到tempDiv
+  const computedStyle = getComputedStyle(referenceContainer);
+  const cssVars = {};
+  
+  // 获取参考容器的所有CSS变量
+  for (let prop of computedStyle) {
+    if (prop.startsWith('--')) {
+      cssVars[prop] = computedStyle.getPropertyValue(prop);
+    }
+  }
+  
+  // 将CSS变量应用到tempDiv的所有子元素
+  const allElements = tempDiv.querySelectorAll('*');
+  allElements.forEach(element => {
+    // 应用CSS变量到每个元素
+    Object.entries(cssVars).forEach(([key, value]) => {
+      element.style.setProperty(key, value);
+    });
+    
+    // 确保字体和颜色样式被应用
+    if (!element.style.fontFamily && referenceContainer.style.fontFamily) {
+      element.style.fontFamily = referenceContainer.style.fontFamily;
+    }
+    if (!element.style.fontSize && referenceContainer.style.fontSize) {
+      element.style.fontSize = referenceContainer.style.fontSize;
+    }
+    if (!element.style.lineHeight && referenceContainer.style.lineHeight) {
+      element.style.lineHeight = referenceContainer.style.lineHeight;
+    }
+  });
+  
+  // 返回修改后的内容，而不是外层div
+  return tempDiv.innerHTML;
+}
+
+// 拆分单个元素的内容
+const splitElementContent = (element, testContainer) => {
+  const parts = []
+  
+  // 如果元素是文本节点或简单文本，直接处理
+  if (element.children.length === 0) {
+    const elementContent = element.outerHTML
+    testContainer.innerHTML = elementContent
+    
+    if (testContainer.scrollHeight <= cardHeight.value) {
+      return [elementContent]
+    }
+    
+    // 拆分文本内容
+    const textContent = element.textContent || element.innerText
+    return splitTextIntoParts(textContent, elementContent, testContainer)
+  }
+  
+  // 如果元素有子元素，尝试按子元素拆分
+  const childElements = Array.from(element.children)
+  if (childElements.length === 0) {
+    return [element.outerHTML]
+  }
+  
+  let currentPartElement = element.cloneNode(false) // 不复制子节点
+  
+  for (const child of childElements) {
+    const testElement = currentPartElement.cloneNode(false)
+    if (currentPartElement.children.length > 0) {
+      for (const childNode of currentPartElement.children) {
+        testElement.appendChild(childNode.cloneNode(true))
+      }
+    }
+    testElement.appendChild(child.cloneNode(true))
+    
+    // 测试高度
+    testContainer.innerHTML = testElement.outerHTML
+    
+    if (testContainer.scrollHeight > cardHeight.value) {
+      // 如果当前部分有内容，先保存
+      if (currentPartElement.children.length > 0) {
+        parts.push(currentPartElement.outerHTML)
+      }
+      
+      // 重置当前部分
+      currentPartElement = element.cloneNode(false)
+      currentPartElement.appendChild(child.cloneNode(true))
+      
+      // 再次测试，如果单个子元素就超出高度
+      testContainer.innerHTML = currentPartElement.outerHTML
+      if (testContainer.scrollHeight > cardHeight.value) {
+        // 递归拆分这个子元素
+        const nodeParts = splitElementContent(child, testContainer)
+        parts.push(...nodeParts)
+        currentPartElement = element.cloneNode(false) // 重置
+      }
+    } else {
+      // 没有超出高度，更新当前部分
+      currentPartElement.appendChild(child.cloneNode(true))
+    }
+  }
+  
+  // 添加最后剩余的内容
+  if (currentPartElement.children.length > 0) {
+    parts.push(currentPartElement.outerHTML)
+  }
+  
+  return parts
+}
+
+// 拆分文本内容到多个部分
+const splitTextIntoParts = (textContent, originalHtml, testContainer) => {
+  const parts = []
+  
+  // 尝试按段落拆分
+  const paragraphs = textContent.split('\n').filter(p => p.trim() !== '')
+  
+  if (paragraphs.length <= 1) {
+    // 如果只有一段文本，按句子拆分
+    const sentences = textContent.replace(/([。！？.!?])/g, '$1|').split('|').filter(s => s.trim() !== '')
+    let currentPart = ''
+    
+    for (const sentence of sentences) {
+      const testPart = currentPart + sentence
+      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="padding:24px;font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
+      
+      if (testContainer.scrollHeight > cardHeight.value && currentPart) {
+        parts.push(currentPart)
+        currentPart = sentence
+      } else {
+        currentPart = testPart
+      }
+    }
+    
+    if (currentPart.trim()) {
+      parts.push(currentPart)
+    }
+  } else {
+    // 按段落拆分
+    let currentPart = ''
+    
+    for (const paragraph of paragraphs) {
+      const testPart = currentPart + '<p>' + paragraph + '</p>'
+      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="padding:24px;font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
+      
+      if (testContainer.scrollHeight > cardHeight.value && currentPart) {
+        parts.push(currentPart)
+        currentPart = '<p>' + paragraph + '</p>'
+      } else {
+        currentPart = testPart
+      }
+    }
+    
+    if (currentPart.trim()) {
+      parts.push(currentPart)
+    }
+  }
+  
+  return parts
+}
+
+splitContentForImages()
+
+// 下载所有图片
+const downloadAllImages = async () => {
+  if (imageDivs.value.length === 0) {
+    ElMessage.warning('没有可下载的图片')
+    return
+  }
+  
+  // 创建一个JSZip实例
+  const zip = new JSZip();
+  
+  // 显示处理进度
+  ElMessage.info(`正在生成 ${imageDivs.value.length} 张图片...`)
+  
+  // 逐个将div转换为图片并添加到zip中
+  for (let i = 0; i < imageDivRefs.value.length; i++) {
+    const divRef = imageDivRefs.value[i]
+    if (divRef) {
+      try {
+        // 使用toPng生成图片
+        const dataUrl = await toPng(divRef, { cacheBust: true })
+        
+        // 将data URL转换为blob
+        const response = await fetch(dataUrl);
+        const blob = await response.blob();
+        
+        // 将图片添加到zip中，按顺序命名
+        zip.file(`markdown-section-${String(i+1).padStart(2, '0')}.png`, blob);
+      } catch (error) {
+        console.error('生成图片失败:', error)
+        ElMessage.error(`第${i+1}张图片生成失败`)
+      }
+    }
+  }
+  
+  // 生成zip文件并下载
+  try {
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    
+    // 创建下载链接
+    const link = document.createElement('a');
+    link.download = `markdown-images-${new Date().getTime()}.zip`;
+    link.href = URL.createObjectURL(zipBlob);
+    link.click();
+    
+    ElMessage.success(`图片打包下载完成，共${imageDivs.value.length}张图片`)
+  } catch (error) {
+    console.error('生成zip文件失败:', error)
+    ElMessage.error('生成zip文件失败')
+  }
 }
 
 // CSS样式内联化函数 - 使用juice库自动处理已加载的CSS
@@ -695,6 +1116,10 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
     
     // 应用CSS变量
     applyCSSVariables();
+
+    if (activeTab.value === 'image') {
+      splitContentForImages()
+    }
   });
 }, { deep: true });
 </script>
@@ -850,7 +1275,6 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 .preview-content {
-  padding: 24px;
   height: 100%;
   overflow-y: auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -864,6 +1288,63 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   color: #909399;
   text-align: center;
   padding: 40px 0;
+}
+
+/* 图片分割面板样式 */
+.image-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.image-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.image-header h4 {
+  margin: 0;
+  color: #303133;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.button-group {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.card-size-control {
+  display: flex;
+  align-items: center;
+}
+
+.image-content {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.image-section {
+  margin-bottom: 20px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.image-preview {
+  padding: 24px;
+  background-color: #ffffff;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+  box-sizing: border-box;
 }
 
 /* 响应式调整 */
