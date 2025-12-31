@@ -52,7 +52,7 @@ const route = useRoute()
 .app-header {
   background: #ffffff;
   border-bottom: 1px solid #d0e3ff;
-  padding: 16px 0px;
+  padding: 8px 0px;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -74,7 +74,7 @@ const route = useRoute()
 .app-title {
   font-size: 24px;
   font-weight: 600;
-  color: #1e40af;
+  color: #2c7cec;
   margin: 0;
   letter-spacing: 0.5px;
   font-family: 'Arial', 'Helvetica', sans-serif;
