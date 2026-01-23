@@ -543,15 +543,13 @@ const splitContentForImages = async () => {
   const testContainer = document.createElement('div')
   testContainer.style.width = `${cardWidth.value}px`
   testContainer.style.height = `${cardHeight.value}px`
-  // testContainer.style.padding = '24px' // 与预览区域的padding一致
+  testContainer.style.padding = '24px' // 与预览区域的padding一致
   testContainer.style.boxSizing = 'border-box'
   testContainer.style.fontFamily = fontFamily.value  // 添加字体族设置
   testContainer.style.fontSize = fontSize.value  // 添加字体大小设置
   testContainer.style.lineHeight = '1.75'
   testContainer.className = `template-${selectedTemplate.value} background-${selectedBackground.value}`
-  console.log('测试容器类名:', testContainer.className)
-  document.body.appendChild(testContainer)
-  
+
   // 获取应用了CSS变量的样式
   const variables = getCurrentTemplateVariables()
 
@@ -560,11 +558,11 @@ const splitContentForImages = async () => {
     testContainer.style.setProperty(`--${key}`, value);
     console.log(`设置CSS变量 --${key}: ${value}`)
   });
+
+  document.body.appendChild(testContainer)
   
   // 直接设置背景颜色和字体大小样式，确保生效
-  testContainer.style.backgroundColor = backgroundColor.value;
-  // testContainer.style.fontSize = fontSize.value;  // 这行已经设置了，上面
-  // testContainer.style.fontFamily = fontFamily.value;  // 这行已经设置了，上面
+  // testContainer.style.backgroundColor = backgroundColor.value;
   
   // 拆分内容的逻辑
   const parts = []
@@ -1090,11 +1088,6 @@ const applyCSSVariables = () => {
     Object.entries(variables).forEach(([key, value]) => {
       previewContainer.style.setProperty(`--${key}`, value);
     });
-    
-    // 直接设置背景颜色和字体大小样式，确保生效
-    previewContainer.style.backgroundColor = backgroundColor.value;
-    previewContainer.style.fontSize = fontSize.value;
-    previewContainer.style.fontFamily = fontFamily.value;
   });
 };
 
@@ -1117,9 +1110,8 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
     // 应用CSS变量
     applyCSSVariables();
 
-    if (activeTab.value === 'image') {
-      splitContentForImages()
-    }
+    // 总是更新小红书图片预览，不管当前在哪个标签页
+    splitContentForImages()
   });
 }, { deep: true });
 </script>
@@ -1277,10 +1269,6 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 .preview-content {
   height: 100%;
   overflow-y: auto;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.75;
-  background-color: #ffffff;
   transition: all 0.3s ease;
 }
 
