@@ -165,7 +165,7 @@
       <!-- 右侧：预览和代码区域 -->
       <div class="preview-panel">
         <!-- 预览选项卡 -->
-        <el-tabs v-model="activeTab" type="border-card" style="height: 100%;">
+        <el-tabs v-model="activeTab" style="height: 100%;">
           <el-tab-pane label="预览" name="preview" style="height: 100%;">
             <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
             </div>
@@ -1117,20 +1117,37 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 </script>
 
 <style scoped>
+/* 导入字体 */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+/* 全局容器 - 白色简约设计 */
 .markdown-tool-container {
   height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
-  background: #f5f7fa;
+  background: #FFFFFF;
+  font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  width: 100%;
 }
 
-/* 模板选择区域 */
+/* 模板选择区域 - 简洁设计 */
 .template-selector {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  margin: 8px 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: #FFFFFF;
+  padding: 8px 16px;
+  border-radius: 0;
+  margin: 0 auto;
+  box-shadow: none;
+  transition: all 0.3s ease;
+  border: none;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.template-selector:hover {
+  box-shadow: none;
+  border-color: transparent;
+  background: #FFFFFF;
 }
 
 .template-header {
@@ -1138,35 +1155,54 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 12px;
+  background: #FFFFFF;
+  padding: 8px 0;
+  border-radius: 0;
+  border: none;
 }
 
 .control-group {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 4px;
+  gap: 12px;
 }
 
 .select-label {
-  font-weight: 400;
-  color: #3f83f8;
+  font-weight: 500;
+  color: #3B82F6;
   white-space: nowrap;
   font-size: 13px;
+  letter-spacing: 0.3px;
 }
 
+/* 下拉颜色选项 */
 .dropdown-color-option {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.dropdown-color-option:hover {
+  background: #F5F5F5;
 }
 
 .color-preview {
-  width: 16px;
-  height: 16px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
-  border: 1px solid #dcdfe6;
+  border: 2px solid #E5E5E5;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.color-preview:hover {
+  transform: scale(1.1);
+  border-color: #D4AF37;
 }
 
 /* 主工作区域 */
@@ -1176,65 +1212,102 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   gap: 16px;
   padding: 0 16px 16px;
   overflow: hidden;
-} 
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
 
+/* 输入面板 - 白色简约设计 */
 .input-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: rgb(255, 255, 255);
+  background: #FFFFFF;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height : 100%;
+  box-shadow: none;
+  height: 100%;
+  transition: all 0.3s ease;
+  border: 1px solid #E5E7EB;
 }
 
+.input-panel:hover {
+  box-shadow: none;
+  border-color: #E5E7EB;
+}
+
+/* 预览面板 - 白色简约设计 */
+.preview-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: none;
+  height: 100%;
+  transition: all 0.3s ease;
+  border: 1px solid #E5E7EB;
+}
+
+.preview-panel:hover {
+  box-shadow: none;
+  border-color: #E5E7EB;
+}
+
+/* 面板头部 - 白色简约设计 */
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  border-radius: 8px 8px 0 0;
 }
 
 .panel-header h3 {
   margin: 0;
-  color: #303133;
+  color: #3B82F6;
   font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .panel-actions {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
+/* 输入内容区域 */
 .input-content {
   height: 100%;
-  padding: 16px;
+  padding: 20px;
+}
+
+.input-content :deep(.el-textarea) {
+  height: 100%;
+  border: none;
 }
 
 .input-content :deep(.el-textarea__inner) {
   height: 100% !important;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 14px;
-  line-height: 1.6;
-}
-
-.code-content {
-  flex: 1;
-  padding: 16px;
-}
-
-.preview-panel {
-  width: 60%;
-  min-width: 500px;
-  display: flex;
-  flex-direction: column;
+  line-height: 1.7;
+  border: 1px solid #E5E7EB;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  height: 100%;
+  background: #FFFFFF;
+  transition: all 0.2s ease;
+  box-shadow: none;
 }
 
+.input-content :deep(.el-textarea__inner):focus {
+  background: white;
+  border-color: #3B82F6;
+  box-shadow: none;
+}
+
+/* 代码面板 */
 .code-panel {
   flex: 1;
   display: flex;
@@ -1245,37 +1318,83 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
 }
 
 .code-header h4 {
   margin: 0;
-  color: #303133;
+  color: #3B82F6;
   font-size: 14px;
   font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 .button-group {
   display: flex;
-  gap: 8px;
+  gap: 12px;
+  align-items: center;
 }
 
 .code-content {
   flex: 1;
-  padding: 16px;
+  padding: 20px;
 }
 
+.code-content :deep(.el-textarea__inner) {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  background: #FFFFFF;
+  border: 1px solid #E5E5E5;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  box-shadow: none;
+}
+
+/* 工作区域 - 白色简约设计 */
+.work-area {
+  background: #FFFFFF;
+}
+
+/* 预览内容 */
 .preview-content {
   height: 100%;
   overflow-y: auto;
   transition: all 0.3s ease;
+  padding: 0px 80px;
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 0 0 16px 16px;
+}
+
+.preview-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.preview-content::-webkit-scrollbar-track {
+  background: #F5F5F5;
+  border-radius: 3px;
+}
+
+.preview-content::-webkit-scrollbar-thumb {
+  background: #CCCCCC;
+  border-radius: 3px;
+  transition: all 0.2s ease;
+}
+
+.preview-content::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
 }
 
 .placeholder {
-  color: #909399;
+  color: #888888;
   text-align: center;
-  padding: 40px 0;
+  padding: 60px 20px;
+  font-size: 14px;
+  background: #F5F5F5;
+  border-radius: 8px;
+  margin: 20px;
 }
 
 /* 图片分割面板样式 */
@@ -1290,52 +1409,174 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 20px;
+  border-bottom: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .image-header h4 {
   margin: 0;
-  color: #303133;
+  color: #3B82F6;
   font-size: 14px;
   font-weight: 600;
-}
-
-.button-group {
-  display: flex;
-  gap: 8px;
-  align-items: center;
+  letter-spacing: 0.3px;
 }
 
 .card-size-control {
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .image-content {
   flex: 1;
-  padding: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 24px;
+  background: white;
+  border-radius: 0 0 12px 12px;
 }
 
 .image-section {
-  margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
+  box-shadow: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  border: 1px solid #E5E5E5;
 }
 
 .image-preview {
   padding: 24px;
   background-color: #ffffff;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 14px;
   line-height: 1.75;
   box-sizing: border-box;
 }
 
-/* 响应式调整 */
+/* Element Plus 组件样式覆盖 - 白色简约设计 */
+:deep(.el-select) {
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+:deep(.el-select:hover .el-input__wrapper) {
+  box-shadow: none;
+  border-color: #93C5FD;
+}
+
+:deep(.el-select .el-input__wrapper) {
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: #FFFFFF;
+  transition: all 0.3s ease;
+  box-shadow: none;
+}
+
+:deep(.el-select .el-input__wrapper.is-focus) {
+  box-shadow: none;
+  border-color: #3B82F6;
+}
+
+:deep(.el-button) {
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 8px 16px;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+:deep(.el-button--primary) {
+  background: #3B82F6;
+  color: #FFFFFF;
+  box-shadow: none;
+  border: none;
+}
+
+:deep(.el-button--primary:hover) {
+  background: #2563EB;
+  box-shadow: none;
+  transform: none;
+}
+
+:deep(.el-button--success) {
+  background: #3B82F6;
+  color: #FFFFFF;
+  box-shadow: none;
+  border: none;
+}
+
+:deep(.el-button--success:hover) {
+  background: #2563EB;
+  box-shadow: none;
+  transform: none;
+}
+
+:deep(.el-button--default) {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  color: #3B82F6;
+}
+
+:deep(.el-button--default:hover) {
+  background: #F3F4F6;
+  border-color: #93C5FD;
+  color: #2563EB;
+  transform: none;
+  box-shadow: none;
+}
+
+:deep(.el-tabs) {
+  height: 100%;
+  overflow: hidden;
+}
+
+:deep(.el-tabs__header) {
+  background: #FFFFFF;
+  padding: 0 20px;
+  border-bottom: none;
+}
+
+:deep(.el-tabs__nav) {
+  border-bottom: none;
+}
+
+:deep(.el-tabs__item) {
+  color: #6B7280;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 16px 20px;
+  margin-right: 16px;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+}
+
+:deep(.el-tabs__item:hover) {
+  color: #3B82F6;
+  background: #F3F4F6;
+}
+
+:deep(.el-tabs__item.is-active) {
+  color: #3B82F6;
+  background: #FFFFFF;
+  border-bottom: 2px solid #3B82F6;
+}
+
+:deep(.el-tabs__content) {
+  height: calc(100% - 53px);
+  overflow: hidden;
+}
+
+/* 响应式设计 */
 @media (max-width: 1200px) {
   .work-area {
     flex-direction: column;
@@ -1344,6 +1585,41 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   .preview-panel {
     width: 100%;
     min-width: auto;
+  }
+  
+  .control-group {
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 768px) {
+  .template-selector {
+    margin: 8px;
+    padding: 16px;
+  }
+  
+  .work-area {
+    padding: 0 8px 8px;
+  }
+  
+  .panel-header,
+  .code-header,
+  .image-header {
+    padding: 12px 16px;
+  }
+  
+  .input-content,
+  .code-content,
+  .preview-content {
+    padding: 16px;
+  }
+  
+  .control-group {
+    gap: 12px;
+  }
+  
+  .template-header {
+    gap: 8px;
   }
 }
 </style>

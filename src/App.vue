@@ -51,12 +51,11 @@ const route = useRoute()
 /* 头部样式 */
 .app-header {
   background: #ffffff;
-  border-bottom: 1px solid #d0e3ff;
+  border-bottom: 1px solid #a7a7a7;
   padding: 8px 0px;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   width: 100%;
   display: flex;
   align-items: center;
