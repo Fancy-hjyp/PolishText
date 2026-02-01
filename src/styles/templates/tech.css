@@ -6,8 +6,10 @@
   color: var(--textColor, #333);
   max-width: 900px;
   margin: 0 auto;
-  padding: 10px;
+  padding: 24px;
   background: var(--backgroundColor, #fff);
+  border-radius: 16px;
+  border: 1px solid #E5E5E5;
 }
 
 .template-tech h1,

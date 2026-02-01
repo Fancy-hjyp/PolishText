@@ -11,6 +11,9 @@
             <li class="nav-item" :class="{ active: route.path === '/' }">
               <router-link to="/">首页</router-link>
             </li>
+            <li class="nav-item" :class="{ active: route.path === '/editor' }">
+              <router-link to="/editor">编辑器</router-link>
+            </li>
           </ul>
         </nav>
       </div>
@@ -50,8 +53,8 @@ const route = useRoute()
 
 /* 头部样式 */
 .app-header {
-  background: #ffffff;
-  border-bottom: 1px solid #a7a7a7;
+  background: #fcf7f0;
+  border-bottom: 1px solid #e8e0d5;
   padding: 8px 0px;
   position: sticky;
   top: 0;
@@ -73,7 +76,7 @@ const route = useRoute()
 .app-title {
   font-size: 24px;
   font-weight: 600;
-  color: #2c7cec;
+  color: #8b7355;
   margin: 0;
   letter-spacing: 0.5px;
   font-family: 'Arial', 'Helvetica', sans-serif;
@@ -109,14 +112,14 @@ const route = useRoute()
 }
 
 .nav-item a:hover {
-  color: #1e40af;
-  background-color: rgba(255, 255, 255, 0.1);
+  color: #8b7355;
+  background-color: rgba(196, 167, 125, 0.1);
   font-weight: 600;
 }
 
 .nav-item.active a {
-  color: #1e40af;
-  background-color: rgba(255, 255, 255, 0.2);
+  color: #8b7355;
+  background-color: rgba(196, 167, 125, 0.15);
   font-weight: 600;
   position: relative;
 }
@@ -128,7 +131,7 @@ const route = useRoute()
   left: 12px;
   right: 12px;
   height: 2px;
-  background-color: #1e40af;
+  background-color: #c4a77d;
   border-radius: 1px;
 }
 </style>
@@ -143,7 +146,7 @@ body {
   margin: 0;
   padding: 0;
   font-family: 'Arial', 'Helvetica', sans-serif;
-  background-color: #ffffff;
+  background-color: #fcf7f0;
   color: #333333;
   overflow-x: hidden;
 }

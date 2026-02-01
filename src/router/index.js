@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import HomeLanding from '../views/landing/HomeLanding.vue'
 import Home from '../views/Home.vue'
 
 // Create router instance
@@ -8,9 +9,17 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
+      component: HomeLanding,
+      meta: {
+        title: 'PolishText - 优雅的Markdown转换工具'
+      }
+    },
+    {
+      path: '/editor',
+      name: 'editor',
       component: Home,
       meta: {
-        title: '首页'
+        title: '编辑器 - PolishText'
       }
     },
     {

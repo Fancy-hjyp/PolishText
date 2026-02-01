@@ -167,7 +167,9 @@
         <!-- 预览选项卡 -->
         <el-tabs v-model="activeTab" style="height: 100%;">
           <el-tab-pane label="预览" name="preview" style="height: 100%;">
-            <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
+            <div class="preview-panel-content">
+                <div class="preview-content" :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }" ref="previewContainerRef" v-html="renderedHtml">
+              </div>
             </div>
           </el-tab-pane>
           
@@ -239,15 +241,11 @@
                 <div 
                   v-for="(imageDiv, index) in imageDivs" 
                   :key="index"
-                  class="image-section"
-                  :style="{ width: cardWidth + 'px', height: cardHeight + 'px' }"
+                  :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }"
+                  :style="{ width: cardWidth + 'px', height: cardHeight + 'px', background: backgroundColor}"
+                  v-html="imageDiv"
                   :ref="el => { if (el) imageDivRefs[index] = el }"
                 >
-                  <div 
-                    :class="{ [`template-${selectedTemplate}`]: true, [`background-${selectedBackground}`]: true }"
-                    :style="{ width: cardWidth + 'px', height: cardHeight + 'px' }"
-                    v-html="imageDiv"
-                  ></div>
                 </div>
               </div>
             </div>
@@ -267,7 +265,7 @@ import hljs from 'highlight.js'
 import juice from 'juice'
 import '../styles/templates/index.css'
 import '../styles/background/index.css'
-import { toPng, toJpeg, toBlob } from 'html-to-image/lib/index.js'
+import { toPng } from 'html-to-image/lib/index.js'
 import JSZip from 'jszip'
 
 // 初始化markdown解析器
@@ -330,10 +328,8 @@ const templates = [
     styles: {
       primaryColor: '#1890ff',
       secondaryColor: '#40a9ff',
-      backgroundColor: '#ffffff',
-      textColor: '#333333',
-      linkColor: '#1890ff',
-      borderColor: '#d9d9d9'
+      backgroundColor: '#fcf7f0',
+      fontSize: '12px',
     }
   },
 ]
@@ -356,9 +352,9 @@ const backgroundOptions = [
 
 // 背景颜色选项配置
 const backgroundColorOptions = [
+  { name: '米色', value: '#fcf7f0' },
   { name: '白色', value: '#ffffff' },
   { name: '浅灰', value: '#fafafa' },
-  { name: '米色', value: '#fdf6e3' },
   { name: '淡蓝', value: '#f0f8ff' },
   { name: '淡绿', value: '#f6ffed' },
   { name: '淡粉', value: '#fff5f5' }
@@ -388,8 +384,8 @@ const fontFamilyOptions = [
 // 响应式数据 - 添加主题状态
 const selectedThemeColor = ref(themeColors[0].name)
 const selectedBackground = ref('default')
-const backgroundColor = ref('#ffffff')  // 默认白色背景
-const fontSize = ref('12px')  // 默认字体大小
+const backgroundColor = ref(templates[0].styles.backgroundColor)
+const fontSize = ref(templates[0].styles.fontSize)
 const fontFamily = ref('-apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif')  // 默认字体类型
 
 // 图片分割相关状态
@@ -439,35 +435,16 @@ const handleInputChange = () => {
   }
 }
 
-const handleTemplateChange = (templateId) => {
-  console.log('切换到模板:', templateId)
-}
-
-const handleThemeColorChange = (value) => {
-  console.log('切换到主题颜色:', value)
-  const colorObj = themeColors.find(color => color.name === value);
-  if (colorObj) {
-    selectedThemeColor.value = colorObj.name;
-  }
-}
-
-const handleBackgroundColorChange = (value) => {
-  console.log('切换到背景颜色:', value)
-  backgroundColor.value = value
-}
-
-const handleBackgroundChange = (value) => {
-  console.log('切换到背景:', value)
-  const bgObj = backgroundOptions.find(bg => bg.value === value);
-  if (bgObj) {
-    selectedBackground.value = bgObj.value;
-  }
-}
-
 // 处理字体大小变化
 const handleFontSizeChange = (value) => {
   fontSize.value = value
   console.log('切换到字体大小:', value)
+}
+
+// 处理背景颜色变化
+const handleBackgroundColorChange = (value) => {
+  console.log('切换到背景颜色:', value)
+  backgroundColor.value = value
 }
 
 // 处理字体类型变化
@@ -475,6 +452,46 @@ const handleFontFamilyChange = (value) => {
   fontFamily.value = value
   console.log('切换到字体类型:', value)
 }
+
+// 动态计算字体大小
+const calculateDynamicFontSize = (elementTag, baseFontSize) => {
+  // 从字符串中提取数值部分，例如从 '16px' 提取 16
+  const baseSize = parseInt(baseFontSize.replace('px', ''));
+  
+  // 根据元素标签返回不同的字体大小
+  switch(elementTag) {
+    case 'h1':
+      return (baseSize + 10) + 'px'; // h1 比基础字体大10px
+    case 'h2':
+      return (baseSize + 8) + 'px';  // h2 比基础字体大8px
+    case 'h3':
+      return (baseSize + 6) + 'px';  // h3 比基础字体大6px
+    case 'h4':
+      return (baseSize + 4) + 'px';  // h4 比基础字体大4px
+    case 'h5':
+      return (baseSize + 2) + 'px';  // h5 比基础字体大2px
+    case 'h6':
+      return (baseSize + 1) + 'px';  // h6 比基础字体大1px
+    default:
+      return baseFontSize; // 普通元素使用基础字体大小
+  }
+};
+
+// 应用CSS变量到预览容器
+const applyCSSVariables = () => {
+  // 更新所有匹配的预览容器
+  const previewContainers = document.querySelectorAll('.preview-content');
+  if (previewContainers.length === 0) return;
+  
+  const variables = getCurrentTemplateVariables();
+  
+  previewContainers.forEach(previewContainer => {
+    // 应用新的CSS变量
+    Object.entries(variables).forEach(([key, value]) => {
+      previewContainer.style.setProperty(`--${key}`, value);
+    });
+  });
+};
 
 // 处理卡片尺寸变化
 const handleCardSizeChange = (value) => {
@@ -562,7 +579,7 @@ const splitContentForImages = async () => {
   document.body.appendChild(testContainer)
   
   // 直接设置背景颜色和字体大小样式，确保生效
-  // testContainer.style.backgroundColor = backgroundColor.value;
+  testContainer.style.backgroundColor = backgroundColor.value;
   
   // 拆分内容的逻辑
   const parts = []
@@ -634,7 +651,17 @@ const createStyledContent = (htmlContent, referenceContainer) => {
   const tempDiv = document.createElement('div');
   tempDiv.innerHTML = htmlContent;
   
-  // 将参考容器的CSS变量应用到tempDiv
+  // 直接设置背景颜色到内层元素
+  const allElements = tempDiv.querySelectorAll('*');
+  allElements.forEach(element => {
+    // 确保所有元素都有背景颜色
+    element.style.backgroundColor = backgroundColor.value;
+  });
+  
+  // 最外层元素也设置背景颜色
+  tempDiv.style.backgroundColor = backgroundColor.value;
+  
+  // 将参考容器的CSS变量应用到所有元素
   const computedStyle = getComputedStyle(referenceContainer);
   const cssVars = {};
   
@@ -645,10 +672,8 @@ const createStyledContent = (htmlContent, referenceContainer) => {
     }
   }
   
-  // 将CSS变量应用到tempDiv的所有子元素
-  const allElements = tempDiv.querySelectorAll('*');
+  // 将CSS变量应用到所有元素
   allElements.forEach(element => {
-    // 应用CSS变量到每个元素
     Object.entries(cssVars).forEach(([key, value]) => {
       element.style.setProperty(key, value);
     });
@@ -665,7 +690,6 @@ const createStyledContent = (htmlContent, referenceContainer) => {
     }
   });
   
-  // 返回修改后的内容，而不是外层div
   return tempDiv.innerHTML;
 }
 
@@ -753,7 +777,7 @@ const splitTextIntoParts = (textContent, originalHtml, testContainer) => {
     
     for (const sentence of sentences) {
       const testPart = currentPart + sentence
-      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="padding:24px;font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
+      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
       
       if (testContainer.scrollHeight > cardHeight.value && currentPart) {
         parts.push(currentPart)
@@ -772,7 +796,7 @@ const splitTextIntoParts = (textContent, originalHtml, testContainer) => {
     
     for (const paragraph of paragraphs) {
       const testPart = currentPart + '<p>' + paragraph + '</p>'
-      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="padding:24px;font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
+      testContainer.innerHTML = `<div class="template-${selectedTemplate.value} background-${selectedBackground.value}" style="font-family:${fontFamily.value};font-size:${fontSize.value};line-height:1.75;">${testPart}</div>`
       
       if (testContainer.scrollHeight > cardHeight.value && currentPart) {
         parts.push(currentPart)
@@ -910,29 +934,6 @@ const getCurrentTemplateVariables = () => {
 };
 
 
-// 动态计算字体大小
-const calculateDynamicFontSize = (elementTag, baseFontSize) => {
-  // 从字符串中提取数值部分，例如从 '16px' 提取 16
-  const baseSize = parseInt(baseFontSize.replace('px', ''));
-  
-  // 根据元素标签返回不同的字体大小
-  switch(elementTag) {
-    case 'h1':
-      return (baseSize + 10) + 'px'; // h1 比基础字体大10px
-    case 'h2':
-      return (baseSize + 8) + 'px';  // h2 比基础字体大8px
-    case 'h3':
-      return (baseSize + 6) + 'px';  // h3 比基础字体大6px
-    case 'h4':
-      return (baseSize + 4) + 'px';  // h4 比基础字体大4px
-    case 'h5':
-      return (baseSize + 2) + 'px';  // h5 比基础字体大2px
-    case 'h6':
-      return (baseSize + 1) + 'px';  // h6 比基础字体大1px
-    default:
-      return baseFontSize; // 普通元素使用基础字体大小
-  }
-};
 
 // 生成微信公众号兼容的HTML代码
 const generateWeChatCompatibleHtml = async () => {
@@ -1075,21 +1076,6 @@ const copyWeChatHtmlCode = async () => {
   }
 };
 
-// 应用CSS变量到预览容器
-const applyCSSVariables = () => {
-  // 更新所有匹配的预览容器
-  const previewContainers = document.querySelectorAll('.preview-content');
-  if (previewContainers.length === 0) return;
-  
-  const variables = getCurrentTemplateVariables();
-  
-  previewContainers.forEach(previewContainer => {
-    // 应用新的CSS变量
-    Object.entries(variables).forEach(([key, value]) => {
-      previewContainer.style.setProperty(`--${key}`, value);
-    });
-  });
-};
 
 // 监听主题变化
 watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor, fontSize, fontFamily], async () => {
@@ -1121,19 +1107,19 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
 
-/* 全局容器 - 白色简约设计 */
+/* 全局容器 - 温暖的米色系 */
 .markdown-tool-container {
   height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: #fcf7f0;
   font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   width: 100%;
 }
 
-/* 模板选择区域 - 简洁设计 */
+/* 模板选择区域 - 温暖米色系 */
 .template-selector {
-  background: #FFFFFF;
+  background: #fcf7f0;
   padding: 8px 16px;
   border-radius: 0;
   margin: 0 auto;
@@ -1147,7 +1133,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 .template-selector:hover {
   box-shadow: none;
   border-color: transparent;
-  background: #FFFFFF;
+  background: #fcf7f0;
 }
 
 .template-header {
@@ -1156,7 +1142,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
-  background: #FFFFFF;
+  background: #fcf7f0;
   padding: 8px 0;
   border-radius: 0;
   border: none;
@@ -1171,7 +1157,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 
 .select-label {
   font-weight: 500;
-  color: #3B82F6;
+  color: #8b7355;
   white-space: nowrap;
   font-size: 13px;
   letter-spacing: 0.3px;
@@ -1188,7 +1174,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 .dropdown-color-option:hover {
-  background: #F5F5F5;
+  background: #fcf7f0;
 }
 
 .color-preview {
@@ -1210,64 +1196,65 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   display: flex;
   flex: 1;
   gap: 16px;
-  padding: 0 16px 16px;
   overflow: hidden;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
+  background: #fcf7f0;
+  padding: 2px 0px;
 }
 
-/* 输入面板 - 白色简约设计 */
+/* 输入面板 - 温暖米色系 */
 .input-panel {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: #fcf7f0;
   border-radius: 8px;
   box-shadow: none;
   height: 100%;
   transition: all 0.3s ease;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E8E0D5;
 }
 
 .input-panel:hover {
   box-shadow: none;
-  border-color: #E5E7EB;
+  border-color: #E8E0D5;
 }
 
-/* 预览面板 - 白色简约设计 */
+/* 预览面板 - 温暖米色系 */
 .preview-panel {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  background: #FFFFFF;
+  background: #fcf7f0;
   border-radius: 8px;
   box-shadow: none;
   height: 100%;
   transition: all 0.3s ease;
-  border: 1px solid #E5E7EB;
+  border: 1px solid #E8E0D5;
 }
 
 .preview-panel:hover {
   box-shadow: none;
-  border-color: #E5E7EB;
+  border-color: #E8E0D5;
 }
 
-/* 面板头部 - 白色简约设计 */
+/* 面板头部 */
 .panel-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  border-bottom: 1px solid #E8E0D5;
+  background: #fcf7f0;
   border-radius: 8px 8px 0 0;
 }
 
 .panel-header h3 {
   margin: 0;
-  color: #3B82F6;
+  color: #8b7355;
   font-size: 16px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -1282,6 +1269,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 .input-content {
   height: 100%;
   padding: 20px;
+  background: #fcf7f0;
 }
 
 .input-content :deep(.el-textarea) {
@@ -1296,15 +1284,17 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   line-height: 1.7;
   border: 1px solid #E5E7EB;
   border-radius: 8px;
-  background: #FFFFFF;
+  background: #fcf7f0;
   transition: all 0.2s ease;
   box-shadow: none;
 }
 
-.input-content :deep(.el-textarea__inner):focus {
-  background: white;
-  border-color: #3B82F6;
-  box-shadow: none;
+.preview-panel-content {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 0 60px 10px 60px;
 }
 
 /* 代码面板 */
@@ -1319,13 +1309,13 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  border-bottom: 1px solid #E8E0D5;
+  background: #fcf7f0;
 }
 
 .code-header h4 {
   margin: 0;
-  color: #3B82F6;
+  color: #8b7355;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -1346,16 +1336,11 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
   font-size: 13px;
   line-height: 1.6;
-  background: #FFFFFF;
-  border: 1px solid #E5E5E5;
+  background: #fcf7f0;
+  border: 1px solid #E8E0D5;
   border-radius: 8px;
   transition: all 0.2s ease;
   box-shadow: none;
-}
-
-/* 工作区域 - 白色简约设计 */
-.work-area {
-  background: #FFFFFF;
 }
 
 /* 预览内容 */
@@ -1363,9 +1348,6 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   height: 100%;
   overflow-y: auto;
   transition: all 0.3s ease;
-  padding: 0px 80px;
-  background: rgba(255, 255, 255, 0.85);
-  border-radius: 0 0 16px 16px;
 }
 
 .preview-content::-webkit-scrollbar {
@@ -1384,7 +1366,7 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 .preview-content::-webkit-scrollbar-thumb:hover {
-  background: #D4AF37;
+  background: #c4a77d;
 }
 
 .placeholder {
@@ -1410,15 +1392,15 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  border-bottom: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  border-bottom: 1px solid #E8E0D5;
+  background: #fcf7f0;
   flex-wrap: wrap;
   gap: 16px;
 }
 
 .image-header h4 {
   margin: 0;
-  color: #3B82F6;
+  color: #8b7355;
   font-size: 14px;
   font-weight: 600;
   letter-spacing: 0.3px;
@@ -1437,28 +1419,18 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
   flex-direction: column;
   align-items: center;
   gap: 24px;
-  background: white;
-  border-radius: 0 0 12px 12px;
+  background: transparent;
 }
 
 .image-section {
   box-shadow: none;
-  border-radius: 12px;
   overflow: hidden;
   transition: all 0.2s ease;
-  border: 1px solid #E5E5E5;
+  background: transparent;
 }
 
-.image-preview {
-  padding: 24px;
-  background-color: #ffffff;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.75;
-  box-sizing: border-box;
-}
 
-/* Element Plus 组件样式覆盖 - 白色简约设计 */
+/* Element Plus 组件样式覆盖 - 温暖米色系 */
 :deep(.el-select) {
   border-radius: 6px;
   transition: all 0.3s ease;
@@ -1466,20 +1438,51 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 
 :deep(.el-select:hover .el-input__wrapper) {
   box-shadow: none;
-  border-color: #93C5FD;
+  border-color: #c4a77d;
+  background: #fff;
 }
 
 :deep(.el-select .el-input__wrapper) {
   border-radius: 6px;
-  border: 1px solid #E5E7EB;
-  background: #FFFFFF;
+  border: 1px solid #E8E0D5;
+  background: #fff;
   transition: all 0.3s ease;
   box-shadow: none;
 }
 
 :deep(.el-select .el-input__wrapper.is-focus) {
   box-shadow: none;
-  border-color: #3B82F6;
+  border-color: #c4a77d;
+  background: #fff;
+}
+
+/* 下拉选项样式 */
+:deep(.el-select-dropdown) {
+  background: #fdfbf7;
+  border-color: #E8E0D5;
+}
+
+:deep(.el-select-dropdown__item) {
+  color: #8b7355;
+}
+
+:deep(.el-select-dropdown__item:hover) {
+  background: #fcf7f0;
+}
+
+:deep(.el-select-dropdown__item.is-selected) {
+  background: #fcf7f0;
+  color: #c4a77d;
+}
+
+:deep(.el-popper) {
+  background: #fdfbf7;
+  border-color: #E8E0D5;
+}
+
+:deep(.el-popper__arrow::before) {
+  background: #fdfbf7;
+  border-color: #E8E0D5;
 }
 
 :deep(.el-button) {
@@ -1494,27 +1497,27 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 :deep(.el-button--primary) {
-  background: #3B82F6;
+  background: #c4a77d;
   color: #FFFFFF;
   box-shadow: none;
   border: none;
 }
 
 :deep(.el-button--primary:hover) {
-  background: #2563EB;
+  background: #b8956e;
   box-shadow: none;
   transform: none;
 }
 
 :deep(.el-button--success) {
-  background: #3B82F6;
+  background: #c4a77d;
   color: #FFFFFF;
   box-shadow: none;
   border: none;
 }
 
 :deep(.el-button--success:hover) {
-  background: #2563EB;
+  background: #b8956e;
   box-shadow: none;
   transform: none;
 }
@@ -1522,13 +1525,13 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 :deep(.el-button--default) {
   background: #FFFFFF;
   border: 1px solid #E5E7EB;
-  color: #3B82F6;
+  color: #8b7355;
 }
 
 :deep(.el-button--default:hover) {
-  background: #F3F4F6;
-  border-color: #93C5FD;
-  color: #2563EB;
+  background: #fcf7f0;
+  border-color: #c4a77d;
+  color: #8b7355;
   transform: none;
   box-shadow: none;
 }
@@ -1539,9 +1542,9 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 :deep(.el-tabs__header) {
-  background: #FFFFFF;
+  background: #fcf7f0;
   padding: 0 20px;
-  border-bottom: none;
+  border-bottom: 1px solid #E8E0D5;
 }
 
 :deep(.el-tabs__nav) {
@@ -1561,19 +1564,25 @@ watch([selectedTemplate, selectedThemeColor, selectedBackground, backgroundColor
 }
 
 :deep(.el-tabs__item:hover) {
-  color: #3B82F6;
-  background: #F3F4F6;
+  color: #8b7355;
+  background: #E8E0D5;
 }
 
 :deep(.el-tabs__item.is-active) {
-  color: #3B82F6;
-  background: #FFFFFF;
-  border-bottom: 2px solid #3B82F6;
+  color: #c4a77d !important;
+  background: #fcf7f0;
+  border-bottom: 2px solid #c4a77d;
 }
 
 :deep(.el-tabs__content) {
-  height: calc(100% - 53px);
+  height: calc(100% - 54px);
   overflow: hidden;
+  background: #fcf7f0;
+}
+
+/* 覆盖 Element Plus tabs 默认的激活下划线颜色 */
+:deep(.el-tabs__active-bar) {
+  background-color: #c4a77d !important;
 }
 
 /* 响应式设计 */
